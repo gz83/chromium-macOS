@@ -1,0 +1,179 @@
+Cross-compiling x86_64 Chromium for macOS on Linux (Intel + x86_64)
+
+1、Get the latest SDK and add it to `.bashrc`
+
+```
+git clone https://github.com/alexey-lysiuk/macos-sdk
+
+export SDK_PATH=/path/to/macos-sdk
+```
+
+2、Get the cctools toolchain and related dependencies
+
+- Make sure the system has a recent version of `clang`, `libstdc++`, or `libc++`
+(and also has `cmake`, `make`, `python`, etc.), then additionally run:
+
+```
+git clone https://github.com/tpoechtrager/cctools-port
+
+sudo apt-get install llvm-dev uuid-dev clang-format clang-tidy clang-tools \
+clang clangd libc++-dev libc++1 libc++abi-dev libc++abi1 libclang-dev libclang1 \
+liblldb-dev libllvm-ocaml-dev libomp-dev libomp5 lld lldb llvm-dev llvm-runtime \
+llvm python3-clang
+```
+
+- Fetch and install `apple-libdispatch`, and install the following dependencies:
+
+```
+git clone https://github.com/tpoechtrager/apple-libdispatch
+
+sudo apt-get install cmake ninja-build clang systemtap-sdt-dev libbsd-dev linux-libc-dev
+```
+
+Then:
+
+```
+cd apple-libdispatch
+
+cmake -G Ninja -DCMAKE_C_COMPILER=clang -DCMAKE_CXX_COMPILER=clang++
+
+ninja
+
+sudo ninja install
+```
+
+- Fetch and install `apple-libtapi`
+
+```
+git clone https://github.com/tpoechtrager/apple-libtapi
+
+cd apple-libtapi
+
+./build.sh
+
+./install.sh
+```
+
+- Fetch and install `xar`
+
+```
+git clone https://github.com/tpoechtrager/xar
+
+cd xar && ./autogen.sh
+
+make -j24 && sudo make install
+```
+
+3、Build cctools
+
+```
+cd cctools-port/cctools
+
+./configure --prefix=/usr/local/cctools --target=x86_64-apple-darwin
+
+make && sudo make install
+
+export PATH="$PATH:/usr/local/cctools/bin"
+```
+
+4、Chromium hacks
+
+- Add `mac` to `.gclient` `target_os`, then run `gclient sync`
+
+- Copy version.plist to `chromium/src/build/mac_files/xcode_binaries/Contents/`
+
+- Link `mach/exc.defs`
+
+```
+mkdir -p build/mac_files/xcode_binaries/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs
+
+ln -s /path/to/macos-sdk \
+  build/mac_files/xcode_binaries/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX15.5.sdk
+
+ls -l build/mac_files/xcode_binaries/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX15.5.sdk/usr/include/mach/exc.defs
+```
+
+- Modify `linker_driver.py` and apply the patch in the directory to fix the file
+
+- In the `gn args` stage, make sure it includes:
+
+```
+mac_sdk_path = "/path/to/macos-sdk"
+use_system_xcode = false
+lld_path = "/usr/local/cctools/bin/x86_64-apple-darwin-ld"
+```
+
+5、Build the browser
+
+You can add or remove build targets as needed.
+
+autoninja -C out/macos/ chrome chrome/installer/mac -j10
+
+6、Test and package
+
+- Compress and copy `out/macos/Chromium.app` to the macOS VM, run the following commands to clear attributes, sign it, and generate a DMG image. After it is generated, drag the DMG into `Applications` to install.
+
+```
+xattr -csr Chromium.app
+
+codesign --force --deep --sign - Chromium.app
+
+hdiutil create -volname "Chromium" -srcfolder Chromium.app -format UDBZ Chromium.dmg
+
+```
+
+VM installation:
+
+1、Get OSX-KVM
+
+```
+sudo apt-get install qemu-system uml-utilities virt-manager git \
+    wget libguestfs-tools p7zip-full make dmg2img tesseract-ocr \
+    tesseract-ocr-eng genisoimage vim net-tools screen -y
+
+git clone --depth 1 --recursive https://github.com/kholia/OSX-KVM.git
+
+cd OSX-KVM
+
+git pull --rebase
+```
+
+2、Patch KVM and the startup scripts, then reboot
+
+```
+sudo modprobe kvm; echo 1 | sudo tee /sys/module/kvm/parameters/ignore_msrs
+
+sudo cp kvm.conf /etc/modprobe.d/kvm.conf
+
+sudo usermod -aG kvm $(whoami)
+
+sudo usermod -aG libvirt $(whoami)
+
+sudo usermod -aG input $(whoami)
+```
+
+3、Fetch the macOS recovery image
+
+```
+
+cd OSX-KVM
+
+./fetch-macOS-v2.py
+
+dmg2img -i BaseSystem.dmg BaseSystem.img
+
+qemu-img create -f qcow2 mac_hdd_ng.img 100G
+
+./OpenCore-Boot.sh
+```
+
+4、Install
+
+```
+
+Enter the KVM environment and wait for it to load. After it appears, choose `macOS base system`, open `Disk Utility`, and format the disk as APFS.
+
+Proceed with system installation. The process may reboot multiple times, and you may need to re-enter `macOS base system` repeatedly before completing initialization.
+```
+
+5、Done

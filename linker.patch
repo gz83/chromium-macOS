@@ -1,0 +1,44 @@
+diff --git a/build/toolchain/apple/linker_driver.py b/build/toolchain/apple/linker_driver.py
+index e502500cedcbb..dd24cad1d16f4 100755
+--- a/build/toolchain/apple/linker_driver.py
++++ b/build/toolchain/apple/linker_driver.py
+@@ -85,6 +85,14 @@ LINKER_DRIVER_COMPILER_ARG_PREFIX = '-Wcrl,driver,'
+ #    It would be processed both before the linker (to check reexport
+ #    in old module) and after the linker (to produce TOC if needed).
+ 
++if sys.platform == "linux":
++    CCTOOLS_STRIP_PATH = "/usr/local/cctools/bin/x86_64-apple-darwin-strip"
++
++    if not os.path.exists(CCTOOLS_STRIP_PATH):
++        raise FileNotFoundError(
++            f"Cannot find cctools strip at {CCTOOLS_STRIP_PATH}. "
++            "Please ensure cctools is properly installed.")
++
+ class LinkerDriver(object):
+     def __init__(self, args):
+         """Creates a new linker driver.
+@@ -402,6 +410,14 @@ class LinkerDriver(object):
+         Args:
+             strip_args_string: string, Comma-separated arguments for `strip`.
+         """
++        if sys.platform == "linux":
++            strip_command = [CCTOOLS_STRIP_PATH]
++            if strip_args_string:
++                strip_command.extend(strip_args_string.split(','))
++            strip_command.append(self._get_linker_output())
++            subprocess.check_call(strip_command)
++            return []
++
+         strip_command = list(self._strip_cmd)
+         if len(strip_args_string) > 0:
+             strip_command += strip_args_string.split(',')
+@@ -419,7 +435,8 @@ class LinkerDriver(object):
+         Args:
+             strip_path: string, The path to the strip binary to run
+         """
+-        self._strip_cmd = [strip_path]
++        if sys.platform != "linux":
++            self._strip_cmd = [strip_path]
+ 
+     def set_otool_path(self, otool_path):
+         """Linker driver pre-action for -Wcrl,otoolpath,<otool_path>.
