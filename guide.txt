@@ -51,7 +51,7 @@ cd apple-libtapi
 
 ./build.sh
 
-./install.sh
+sudo ./install.sh
 ```
 
 - Fetch and install `xar`
@@ -87,10 +87,10 @@ export PATH="$PATH:/usr/local/cctools/bin"
 ```
 mkdir -p build/mac_files/xcode_binaries/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs
 
-ln -s /path/to/macos-sdk \
-  build/mac_files/xcode_binaries/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX15.5.sdk
+ln -s /path/to/macos-sdk/MacOSX26.4.sdk \
+  build/mac_files/xcode_binaries/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX26.4.sdk
 
-ls -l build/mac_files/xcode_binaries/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX15.5.sdk/usr/include/mach/exc.defs
+ls -l build/mac_files/xcode_binaries/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX26.4.sdk/usr/include/mach/exc.defs
 ```
 
 - Modify `linker_driver.py` and apply the patch in the directory to fix the file
