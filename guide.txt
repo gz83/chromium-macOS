@@ -98,7 +98,8 @@ ls -l build/mac_files/xcode_binaries/Contents/Developer/Platforms/MacOSX.platfor
 - In the `gn args` stage, make sure it includes:
 
 ```
-mac_sdk_path = "/path/to/macos-sdk"
+mac_sdk_official_version = "26.4"
+mac_sdk_official_build_version = "25E246"
 use_system_xcode = false
 lld_path = "/usr/local/cctools/bin/x86_64-apple-darwin-ld"
 ```

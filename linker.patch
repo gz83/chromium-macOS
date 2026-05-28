@@ -42,3 +42,27 @@ index e5163d91889f0..455fc64b8653b 100755
  
      def set_otool_path(self, otool_path):
          """Linker driver pre-action for -Wcrl,otoolpath,<otool_path>.
+diff --git a/build/toolchain/apple/toolchain.gni b/build/toolchain/apple/toolchain.gni
+index c27949b50782a..a21f40edf3551 100644
+--- a/build/toolchain/apple/toolchain.gni
++++ b/build/toolchain/apple/toolchain.gni
+@@ -106,7 +106,6 @@ template("single_apple_toolchain") {
+     # passed to the build. They are ignored when this is the default toolchain.
+     assert(defined(invoker.toolchain_args),
+            "Toolchains must declare toolchain_args")
+-    _toolchain_args = invoker.toolchain_args
+     toolchain_args = {
+       # Populate toolchain args from the invoker.
+       forward_variables_from(invoker.toolchain_args, "*")
+@@ -121,9 +120,8 @@ template("single_apple_toolchain") {
+       # here to force both contexts to stay in sync.
+       # LINT.IfChange(use_apple_linker)
+       use_apple_linker =
+-          host_os == "mac" && _toolchain_args.current_os == "mac" &&
+-          !use_thin_lto && host_cpu == "arm64" &&
+-          _toolchain_args.current_cpu == "arm64" &&
++          host_os == "mac" && current_os == "mac" && !use_thin_lto &&
++          host_cpu == "arm64" && current_cpu == "arm64" &&
+           !(use_remoteexec && use_system_xcode)
+       use_lld = !use_apple_linker
+ 
