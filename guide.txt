@@ -17,7 +17,7 @@ export SDK_PATH=/path/to/macos-sdk
 git clone https://github.com/tpoechtrager/cctools-port
 
 sudo apt-get install llvm-dev uuid-dev clang-format clang-tidy clang-tools \
-clang clangd libc++-dev libc++1 libc++abi-dev libc++abi1 libclang-dev libclang1 \
+clang clangd libc++-dev libc++1 libc++abi-dev libc++abi1 libclang-dev \
 liblldb-dev libllvm-ocaml-dev libomp-dev libomp5 lld lldb llvm-dev llvm-runtime \
 llvm python3-clang
 ```
@@ -59,7 +59,7 @@ cd apple-libtapi
 ```
 git clone https://github.com/tpoechtrager/xar
 
-cd xar && ./autogen.sh
+cd xar/xar && ./autogen.sh
 
 make -j24 && sudo make install
 ```
