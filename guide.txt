@@ -93,16 +93,18 @@ ln -s /path/to/macos-sdk/MacOSX26.4.sdk \
 ls -l build/mac_files/xcode_binaries/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX26.4.sdk/usr/include/mach/exc.defs
 ```
 
-- Modify `linker_driver.py` and apply the patch in the directory to fix the file
-
 - In the `gn args` stage, make sure it includes:
 
 ```
-mac_sdk_official_version = "26.4"
-mac_sdk_official_build_version = "25E246"
+mac_sdk_official_version = "26.5"
+mac_sdk_official_build_version = "25F70"
 use_system_xcode = false
 lld_path = "/usr/local/cctools/bin/x86_64-apple-darwin-ld"
+enable_dsyms = false
+enable_stripping = true
 ```
+
+- Fix other errors based on the actual situation
 
 5、Build the browser
 

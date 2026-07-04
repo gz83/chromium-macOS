@@ -3,12 +3,12 @@
 <plist version="1.0">
 <dict>
     <key>CFBundleShortVersionString</key>
-    <string>26.4.1</string>
+    <string>26.5</string>
     <key>ProductBuildVersion</key>
-    <string>17E202</string>
+    <string>25F70</string>
     <key>ProjectName</key>
     <string>Xcode</string>
     <key>BuildVersion</key>
-    <string>17E202</string>
+    <string>25F70</string>
 </dict>
 </plist>
